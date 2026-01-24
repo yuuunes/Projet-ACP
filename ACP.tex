@@ -2,61 +2,906 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
+\usepackage{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{geometry}
 \geometry{margin=2.5cm}
 
 \title{Analyse en Composantes Principales}
-\author{Votre Nom}
-\date{\today}
+\author{Youness Moustakim}
+\date{Janvier 2026}
 
 \begin{document}
 
 \maketitle
 
-\begin{abstract}
-Résumé de votre analyse en composantes principales.
-\end{abstract}
-
 \section{Introduction}
 
-L'analyse en composantes principales (ACP) est une méthode statistique...
+L'analyse de données est une branche de la statistique qui recouvre un certain nombre des méthodes qui ont pour objectif de faire ressortir l'information contenu dans un jeu de données.
 
-\section{Méthodologie}
+L'Analyse en Composantes Principales (ACP) est une méthode statistique utilisée pour réduire la dimensionnalité des données tout en préservant autant que possible la variance présente dans les données originales. Elle est particulièrement utile lorsque l'on travaille avec des ensembles de données à haute dimension, où la visualisation et l'interprétation directe peuvent être difficiles.
 
-\subsection{Principes mathématiques}
+L'ACP permet de transformer un ensemble de variables corrélées en un ensemble de variables non corrélées appelées composantes principales. Ces composantes principales sont des combinaisons linéaires des variables originales et sont ordonnées de manière à ce que la première composante principale capture la plus grande variance possible, la deuxième composante principale capture la deuxième plus grande variance, et ainsi de suite.
 
-L'ACP cherche à réduire la dimensionnalité des données...
+L'objectif principal de l'ACP est de réduire le nombre de variables tout en conservant l'essentiel de l'information contenue dans les données, ce qui facilite l'analyse, la visualisation et la modélisation ultérieure.
 
-\subsection{Algorithme}
+Dans ce document, nous allons explorer les principes mathématiques sous-jacents à l'ACP, décrire l'algorithme utilisé pour effectuer cette analyse, et illustrer son application à un jeu de données spécifique.
 
-Les étapes principales de l'ACP sont :
-\begin{enumerate}
-    \item Centrer et réduire les données
-    \item Calculer la matrice de covariance
-    \item Déterminer les valeurs propres et vecteurs propres
-    \item Sélectionner les composantes principales
-\end{enumerate}
+\section{Tableaux de données, résumés numériques et espaces associés}
 
-\section{Application numérique}
+\subsection{Les données et leurs caractéristiques}
+\subsubsection{Tableau de données}
 
-\subsection{Jeu de données}
+Les observations de p variables sur n individus sont représentées par un tableau de données $X$ de taille $n \times p$ dont le terme général $x_{ij}$ est la valeur de la variable $X_j$ pour l'individu $i$.
 
-Présentez vos données...
+\[X = 
+\begin{pmatrix}
+& \vdots &  \\
+\dots & x_{ij} & \dots \\
+& \vdots & 
+\end{pmatrix}
+\]
 
-\subsection{Résultats}
+On identifie une variable $X^{j}$ par la colonne correspondante: une variable n'est rien d'autre qu'une liste des n valeurs qu'elle prend sur les n individus.
 
-Analysez les résultats obtenus...
+\[ X^j = \begin{pmatrix} x_{1j} \\ x_{2j} \\ \vdots \\ x_{nj} \end{pmatrix} \]
 
-\section{Conclusion}
+On identifiera de même un individu i au vecteur $e_i$ à p composantes correspondant à la ligne i de $X$.
 
-Synthétisez vos findings...
+\[ e_i' = \begin{pmatrix} x_{i1} & x_{i2} & \dots & x_{ip} \end{pmatrix}' \]
+
+\subsubsection{Poids et centre de gravité}
+
+Les données ont été recueillies suivant une distribution de poids $p_i > 0$ avec $\sum_{i=1}^n p_i = 1$.
+
+Ces poids sont regroupés dans une matrice diagonale $D$ de taille $n$.
+
+\[D = 
+\begin{pmatrix}
+p_1 & 0 & \dots & 0 \\
+0 & p_2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & p_n
+\end{pmatrix}
+\]
+
+Dans le cas le plus usuel, les données ont été recueillies avec des poids égaux: $p_i = \frac{1}{n}$.
+
+La matrice D sera alors $D = \frac{1}{n} I $ où $I$ est la matrice identité de taille $n$
+
+Le centre de gravité $g$ du nuage des n individus est le point de coordonnées:
+
+\[ g_i'= \begin{pmatrix} \bar{x}^{1} & \bar{x}^{2} & \dots & \bar{x}^{p} \end{pmatrix}' \]
+où $\bar{x}^{j} = \sum_{i=1}^n p_i x_{ij}$ est la moyenne pondérée de la variable $X^{j}$.
+
+On a g = $X'D1$ où $1$ est le vecteur de $\mathbb{R}^n$ dont toutes les composantes valent 1, çad $1' = (1, 1, \dots, 1)$.
+
+Le tableau $Y$ tel que $y_{i}^j$ = $x_{i}^j - \bar{x}^{j}$ est le tableau des données centrées associé à $X$.
+
+On a $Y = X - 1 g'$ = ($I - 1 1'D $) $X$.
+
+l'opérateur de centrage est donc $I - 1 1'D$.
+
+Dans la suite du document on prend $D$ = $\frac{1}{n} I$.
+
+\subsubsection{Matrice de variance-covariance}
+
+on a la covariance empirique entre les variables $X^{j}$ et $X^{k}$:
+\[s_{jk} = \frac{1}{n}\sum_{i=1}^n (x_{ij} - \bar{x}^{j})(x_{ik} - \bar{x}^{k}) = \frac{1}{n}\sum_{i=1}^n (x_{i}^j . x_{i}^k) - \bar{x}^{j} \bar{x}^{k}\] 
+
+La matrice de variance-covariance $V$ est la matrice symétrique d'ordre $p$ dont le terme général est $s_{jk}$.
+
+\[V = \begin{pmatrix}
+s_{1}^2 & s_{12} & \dots & s_{1p} \\
+\vdots & s_{2}^2 & \dots & s_{2p} \\
+\vdots &  & \ddots & \vdots \\
+\vdots & \dots & \dots & s_{p}^2
+\end{pmatrix}
+\]
+
+$V$ est telle que: 
+\[V = \frac{1}{n} Y' Y = \frac{1}{n} X'X - g g' = \frac{1}{n} Y'Y \]
+
+\subsubsection{la matrice de corrélation}
+
+si l'on note $D_{1/s}$ la matrice diagonale des inverses des écarts-types des variables : 
+\[D_{1/s} = \begin{pmatrix}
+\frac{1}{s_1} &  &  & 0 \\
+ & \frac{1}{s_2} &  &  \\
+ & & \ddots & \\
+0 &  & & \frac{1}{s_p}
+\end{pmatrix}
+\]
+
+Le tableau des données centrées et réduites $Z$ tel que :
+$z_{i}^j = \frac{x_{i}^j - \bar{x}^{j}}{s_j}$.
+est donc : \[Z = Y D_{1/s}\]
+
+La matrice regroupant tous les coefficients de corrélation entre les p variables prises deux à deux est la matrice de corrélation $R$ définie par:
+\[R = \begin{pmatrix}
+1 & r_{12} & \dots & r_{1p} \\
+. & 1 &  & . \\
+. &  &  & . \\
+r_{p1} &  &  & 1
+\end{pmatrix}\]
+où $r_{jk} = \frac{s_{jk}}{s_j s_k}$ est le coefficient de corrélation linéaire entre les variables $X^{j}$ et $X^{k}$.
+
+$R$ est la matrice de variance-covariance des données centrées et réduites et résume la structure de dépendance linéaire entre les $p$ variables prises deux à deux.
+\[R = D_{1/s} V D_{1/s} = \frac{1}{n} Z' Z\]
+
+\subsection{Espace des individus}
+
+Chaque individu $e_i$ est un point de l'espace $\mathbb{R}^p$ des variables. 
+
+Il est donc considéré comme un élément de l'espace vectoriel $F$ : l'espace des individus.
+
+L'ensemble des n individus forme un nuage de points dans $F$
+
+Et $g$ en est le centre de gravité.
+
+On munit $F$ d'une structure d'espace euclidien afin de définir des distances entre individus.
+
+\subsubsection{Le rôle de métrique}
+
+En physique, la distance entre deux points de l'espace se calcule facilement par la formule de Pythagore : 
+$d^2$ = $(x_1 - x_2)^2 + (y_1 - y_2)^2 + ....$
+
+Puisque les dimensions sont de même nature (longueurs), on les mesure dans la même unité.
+
+Il n'en est pas de même en analyse de données où chaque dimension correspond à une variable qui s'exprime avec son unité particulière;
+
+Comment calculer la distance entre deux individus décrits par les trois caractères : âge, salaire, nombre d'enfants ?
+
+Si l'on veut donner des importances différentes à chaque caractère, on peut pondérer chaque terme de la somme par un coefficient positif $m_j$.
+On prendra alors une formule du type:
+\[d^2(e_i, e_j) = \sum_{k=1}^p m_k (x_{ik} - x_{jk})^2\]
+ce qui revient à multiplier chaque caractère (variable) par $\sqrt{m_k}$ avant de calculer la distance euclidienne classique.
+
+De plus, la formule de Pythagore n'est valable que si les axes sont perpendiculaires, ce que l'on ne peut pas supposer a priori en statistique; On aurait pu représenter les caractères par des axes non orthogonaux.
+On utilisera donc une formule plus générale:
+\[d_M^2(e_i, e_j) = (e_i - e_j)' M (e_i - e_j)\]
+où $M$ est une matrice d'ordre $p$ définie positive symétrique.
+
+L'espace des invididus est donc muni du produit scalaire : 
+\[(e_i, e_j)_M = e_i' M e_j\]
+
+En théorie, le choix de la matrice $M$ appartient à l'utilisateur qui doit définir la notion de distance entre individus. 
+
+En pratique, on choisit souvent $M = I$ (matrice identité) qui revient à utiliser le produit scalaire usuel ou $M = D_{1/s^2}$ (matrice des inverses des variances) qui est la plus utilisée.
+
+\[
+M = D_{1/s^2} =
+\begin{pmatrix}
+\frac{1}{s_1^2} &  &  & 0 \\
+ & \frac{1}{s_2^2} &  &  \\
+  &  & \ddots &  \\
+0 &  &   & \frac{1}{s_p^2}
+\end{pmatrix}
+\]
+
+ce qui revient à diviser chaque caractère par son écart-type. 
+
+Les avantages de ce choix sont les suivants:
+\begin{itemize}
+\item on s'affranchit des unités de mesure, puisque les nombres $\frac{x_{i}^j}{s_j}$ sont sans dimension;
+\item Il est adapté lorsque les variables sont hétérogènes.
+\item on évite qu'une variable de grande variance domine les autres dans le calcul des distances.
+\item les variables sont ramenées à un même niveau de variation.
+\end{itemize}
+
+l'utilisation de $M$ = $I$ conduirait à privilégier les variables les plus dispersées, pour lesquelles les différences entre individus sont les plus fortes, et à négliger les différences entre les autres variables.
+
+La métrique $D_{1/s^2}$ rétablit alors l'équilibre en donnant à toutes la variance 1.
+
+\subsubsection{L'inertie}
+
+L'inertie du nuage des n individus est la moyenne pondérée des carrés des distances entre les individus et le centre de gravité:
+\[I_g = \sum_{i=1}^n p_i d_M^2(e_i, g)\]
+
+Dans notre cas : $p_i = \frac{1}{n}$ pour tout i.
+
+On a donc:
+
+\[I_g = \frac{1}{n} \sum_{i=1}^n (e_i - g)' M (e_i - g)\]
+
+L'inertie mesure la dispertion des données, càd à quel point les individus sont éloignés du centre de gravité.
+
+Un nuage très serré --> inertie faible.
+
+Un nuage très étalé --> inertie élevée.
+
+Si $g$ = 0 (données centrées) on a:
+
+\[I_g = \frac{1}{n} \sum_{i=1}^n e_i' M e_i \]
+
+L'inertie est la trace de la matrice $M V$ (ou $V M$ car elles ont même trace):
+
+\[I_g = \operatorname{Trace}(M V) = \operatorname{Trace}(V M)\]
+
+En effet, $\frac{1}{n} e_i' M e_i$ étant un scalaire, grâce à la commutativité sous la trace : 
+\[\operatorname{Trace}(\frac{1}{n} \sum_{i=1}^n e_i' M e_i) = \operatorname{Trace}(M X' D X) = \operatorname{Trace}(MV)\] 
+
+Dans notre cas $M$ = $D_{1/s^2}$ : 
+
+\[\operatorname{Trace}(M V) = \operatorname{Trace}(D_{1/s^2} V) = \operatorname{Trace}(D_{1/s} V D_{1/s}) = \operatorname{Trace}(R) = p\]
+
+L'inertie est donc égale au nombre de variables $p$ et ne dépend pas des données.
+
+\subsection{Espace des variables}
+Chaque variable $X^{j}$ est un point de l'espace $\mathbb{R}^n$ des individus.
+
+Il est donc considéré comme un élément de l'espace vectoriel $E$ : l'espace des variables.
+
+\subsubsection{La métrique des poids}
+
+Pour étudier la proximité des variables entre elles il faut munir cet espace d'une métrique,
+c'est-à-dire trouver une matrice d'ordre $p$ définie positive symétrique. Ici il n'y a pas
+d'hésitation comme pour l'espace des individus et le choix se porte sur la matrice diagonale
+$p$ des poids $D$ pour les raisons suivantes:
+
+Le produit scalaire de deux variables $x_i$ et $x_j$ qui vaut $x_i'Dx_j = \sum_{k=1}^n x_{ki}x_{kj}$ n'est autre
+que la covariance $s_{ij}$ si les deux variables sont centrées.
+
+La norme d'une variable $x_i$ est alors $\lVert x_i \rVert_D = s_i$ en d'autres termes la « longueur » d'une variable est égale à son écart-type.
+
+L'angle $\theta_{ij}$ entre deux variables centrées est donné par:
+
+\[\cos\theta_{ij} = \frac{(x_i, x_j)}{\lVert x_i \rVert \lVert x_j \rVert}\]
+
+Le cosinus de l'angle entre deux variables centrées n'est autre que leur coefficient de
+corrélation linéaire.
+
+Si dans l'espace des individus on s'intéresse aux distances entre points, dans l'espace des
+variables on s'intéressera plutôt aux angles en raison de la propriété précédente.
+
+\subsubsection{Variables engendrées par un tableau de données}
+
+À une variable $x_i$ on peut associer un axe de l'espace des individus $F$ et un vecteur de
+l'espace des variables $E$.
+
+On peut également déduire de $X_1, X_2, \dots, X_p$ de nouvelles variables par combinaison
+linéaire, ce qui revient à projeter les individus sur de nouveaux axes de $F$.
+
+Considérons un axe $l$ de l'espace des individus engendré par un vecteur unitaire $a$
+(c'est-à-dire de $M$-norme 1) et projetons les individus sur cet axe (projection $M$-orthogonale)
+(fig. 7.1).
+
+La liste des coordonnées $c_i$ des individus sur $l$ forme une nouvelle variable ou composante, $c$.
+Comme $c_i = a'Me_i$
+
+\[c = Xa\]
+
+En posant $u = M a$.
+À la variable $c$ sont donc associés trois êtres mathématiques:
+\begin{itemize}
+\item un axe $l$ de $F$ de vecteur unitaire $a$;
+\item un vecteur $c$ de $E$ espace des variables;
+\item une forme linéaire $u$ appelée facteur.
+\end{itemize}
+
+L'ensemble des variables $C_j$ qui peuvent être engendrées par combinaisons linéaires des
+vecteurs-colonnes de $X$ forme un sous-espace vectoriel de $E$ de dimension égale (ou inférieure) à $p$.
+
+Remarquons que si $a$ appartient à l'espace des individus $F$, $u$ appartient à son dual $F^*$, et
+que si $a$ est $M$-normé à $l$, $u$ est $M^{-1}$-normé à $1$:
+
+$F^*$ est donc muni de la métrique $M^{-1}$.
+
+(Lorsque $M = I$ ces distinctions disparaissent et on peut identifier totalement axes et
+facteurs).
+
+La variance de $c$ vaut alors:
+\[V(c) = c'Dc = u'X'DXu = u'Vu\]
+
+En effet:
+\[s_c^2 = u'Vu\]
+
+\[c'Dc = (Xu)'D(Xu) = u'X'DXu\]
+
+\[u'X'DXu\]
+
+\subsection{L'ANALYSE}
+
+\subsubsection{Projection des individus sur un sous-espace}
+
+Le principe de la méthode est d'obtenir une représentation approchée du nuage des $n$ individus dans un sous-espace de dimension faible. Ceci s'effectue par projection ainsi que
+l'illustre la figure 7.2.
+
+Le choix de l'espace de projection s'effectue selon le critère suivant qui revient à déformer le moins possible les distances en projection: le sous-espace de dimension $k$ recherché
+est tel que la moyenne des carrés des distances entre projections soit la plus grande possible.
+(En effet, en projection les distances ne peuvent que diminuer). En d'autres termes il faut que
+l'inertie du nuage projeté sur le sous-espace soit maximale.
+
+Soit $P$ l'opérateur de projection $M$-orthogonale sur $F_k$: $P$ est tel que $P^2 = P$
+et $P'M P = P$.
+
+Le nuage projeté est alors associé au tableau de données $XP'$, car chaque individu $e_i$
+(ou ligne de $X$) se projette sur $F_k$ selon un vecteur colonne $Pe_i$ ou un vecteur ligne $e_i P'$.
+
+La matrice de variance du tableau $XP'$ est pour des variables centrées:
+\[(XP')'D(XP') = P'V P\]
+
+L'inertie du nuage projeté vaut donc: $\operatorname{Trace}(P'V P M)$.
+
+Par des opérations élémentaires on en déduit:
+\[\operatorname{Trace}(P'V P M) = \operatorname{Trace}(P V M P)\]
+
+car $P'M = M P$
+
+\[= \operatorname{Trace}(V M P^2)\]
+
+car $\operatorname{Trace}(AB) = \operatorname{Trace}(BA)$
+
+\[= \operatorname{Trace}(V M P)\]
+
+car $P$ est idempotent
+
+Le problème est donc de trouver $P$, projecteur $M$-orthogonal de rang $k$ maximisant
+$\operatorname{Trace}(V M P)$ ce qui déterminera donc $F_k$.
+
+Si $F$ et $G$ sont deux sous-espaces orthogonaux alors:
+
+Il suffit de remarquer que le projecteur associé à la somme directe de deux sous-espaces
+$M$-orthogonaux est la somme des projecteurs associés à chacun des espaces.
+
+De ce résultat on déduit le théorème fondamental suivant:
+
+\textbf{THÉORÈME}
+
+Soit $F_k$ l'espace portant l'inertie maximale, alors le sous-espace de dimension
+$k + 1$ portant l'inertie maximale est la somme directe de $F_k$ et du sous-espace
+de dimension 1 $M$-orthogonal à $F_k$ portant l'inertie maximale: Les solutions sont
+« emboîtées ».
+
+\textbf{Démonstration:} Soit $E_{k+1}$ un sous-espace de dimension $k + 1$:
+Comme $\dim E_{k+1} = k + 1$ et $\dim F_k = n - k$, on a:
+\[\dim E_{k+1} + \dim F_k = n + 1 > n\]
+
+Soit $b$ un vecteur appartenant à $E_{k+1} \cap F_k$.
+Posons $E_{k+1} = b \oplus G$ où $G$ est le supplémentaire $M$-orthogonal de $b$ dans $E_{k+1}$. $G$ est
+$F_k \oplus b$.
+
+On a:
+\[I_{k+1} = I_b + I_G\]
+
+\[I_k = I_{F_k} + I_b\]
+
+Comme $F_k$ était le sous-espace de dimension $k$ portant l'inertie maximale $I_G \leq I_{F_k}$, donc
+$I_{k+1} \leq I_k + I_{F_k}$ c'est-à-dire $I_{k+1} \leq I_k$ et ceci quel que soit $E_{k+1}$.
+
+Le maximum de l'inertie est donc réalisé pour l'espace $F = b \oplus F_k$ et $b$ doit être tel que:
+$I_b$ soit maximal.
+
+Pour obtenir $F_k$ on pourra donc procéder de proche en proche en cherchant d'abord le sous-espace de dimension 1 d'inertie maximale, puis le sous-espace de dimension 1 $M$-orthogonal au précédent d'inertie maximale, etc.
+
+\subsection{Éléments principaux}
+
+\subsubsection{Axes principaux}
+
+Nous devons chercher la droite de $\mathbb{R}^p$ passant par $g$ maximisant l'inertie du nuage projeté
+sur cette droite.
+
+Soit $a$ un vecteur porté par cette droite; le projecteur $M$-orthogonal sur la droite est
+alors:
+\[P = a(a'Ma)^{-1}a'M\]
+
+L'inertie du nuage projeté sur cette droite vaut, d'après ce qui précède:
+\[\operatorname{Trace} V M P = \operatorname{Trace} V M a(a'Ma)^{-1}a'M = \frac{\operatorname{Trace} V M a a'M}{\operatorname{Trace} a'M a}\]
+
+\[\frac{a'M V M a}{a'M a}\]
+
+puisque $a'M V M a$ est un scalaire.
+
+La matrice $M V M$ est appelée matrice d'inertie du nuage. Elle définit la forme
+quadratique d'inertie qui, à tout vecteur $a$ de $M$-norme 1, associe l'inertie projetée sur l'axe
+défini par $a$. La matrice d'inertie ne se confond avec la matrice de variance-covariance que
+si $M = I$.
+
+Pour obtenir le maximum de cette expression par rapport à $a$:
+
+\[\frac{\partial}{\partial a} \left( \frac{a'M V M a}{a'M a} \right)\]
+
+D'où:
+
+\[(a'M a)^2 M V M a - (a'M V M a)^2 M a = 0\]
+
+Soit:
+
+\[M V M a = \lambda \frac{a'M V M a}{a'M a} M a = \lambda a\]
+
+car $M$ est régulière. Donc $a$ est vecteur propre de $M V M$. S'il en est ainsi, le critère $a'M V M a$
+vaut $\lambda$. Il faut donc que $\lambda$ soit la plus grande valeur propre de $V M$.
+
+La matrice $V M$ étant $M$-symétrique possède des vecteurs propres $M$-orthogonaux deux
+à deux.
+
+D'où le résultat suivant:
+
+\textbf{THÉORÈME}
+
+Le sous-espace $F_k$ de dimension $k$ est engendré par les $k$ vecteurs propres de $V M$
+associés aux $k$ plus grandes valeurs propres.
+
+On appelle axes principaux d'inertie les vecteurs propres de $V M$, $M$-normés à 1. Ils sont
+au nombre de $p$.
+
+Un calcul élémentaire montre que les axes principaux sont aussi $V^{-1}$-orthogonaux: on
+montre réciproquement que les axes principaux sont le seul système de vecteurs à la fois
+$M$ et $V^{-1}$-orthogonaux.
+
+\subsubsection{Facteurs principaux}
+
+À l'axe principal $a$ $M$-normé à 1 est associé le facteur principal $u = M a$.
+
+Puisque $a$ était vecteur-propre de $V M$:
+\[V M a = \lambda a \implies M V M a = \lambda M a\]
+
+Soit:
+\[\lambda M a = M V M a\]
+
+Les facteurs principaux sont les vecteurs propres $M^{-1}$-normés de $M V$. En effet, on a vu
+que si $F$ est muni de la métrique $M$, son dual doit être muni de la métrique $M^{-1}$.
+Donc $u'M^{-1} u = 1$.
+
+Les facteurs principaux sont $M^{-1}$ et $V$-orthogonaux.
+
+\subsubsection{Composantes principales}
+
+Ce sont les variables $C_j$ (éléments de $\mathbb{R}^n$) définies par les facteurs principaux:
+
+\[C_j = X u_j\]
+
+La variance d'une composante principale est égale à la valeur propre $\lambda_j$:
+
+En effet $V(C) = C'D C = u' X' D X u = u' V u$ or:
+
+Donc:
+\[V(C) = \lambda_j\]
+
+Les $C_j$ sont les combinaisons linéaires de $X_1, X_2, \dots, X_p$ de variance maximale sous
+la contrainte $u_j' M^{-1} u_j = 1$.
+
+Les composantes principales sont elles-mêmes vecteurs propres d'une matrice de taille $n$:
+En effet $M V u = \lambda u$ s'écrit $M X' D X u = \lambda u$; en multipliant à gauche par $X$ et en remplaçant
+$X u$ par $C$ on a:
+\[X M X' D C = \lambda C\]
+
+La matrice $X M X'$ notée $W$ est la matrice dont le terme général $w_{ij}$ est le produit scalaire
+$(e_i, e_j)_{M}$.
+
+D'où pour résumer:
+
+\begin{tabular}{|c|c|c|}
+\hline
+Facteurs principaux $u$ & Axes principaux $a$ & Composantes principales $c$ \\
+\hline
+$c = X u$ & $M V a = \lambda a$ & $X M X' D c = \lambda c$ \\
+$M^{-1}$-orthonormés & $M$-orthonormés & $D$-orthogonales \\
+\hline
+\end{tabular}
+
+En pratique on calcule les $u$ par diagonalisation de $M V$, puis on obtient les $c = X u$, les
+axes principaux $a_n$ ayant pas d'intérêt pratique.
+
+\subsubsection{Formules de reconstitution}
+
+Comme $X u_j = c_j$ en post-multipliant les deux membres par $u_j' M^{-1}$ et en sommant sur $j$
+il vient:
+
+\[X \sum_{j=1}^p u_j u_j' M^{-1} = \sum_{j=1}^p c_j u_j' M^{-1}\]
+
+Or
+\[\sum_{j=1}^p u_j u_j' M^{-1} = I\]
+
+car les $u_j$ sont $M^{-1}$ orthonormés, il suffit de vérifier que:
+
+Donc:
+\[X = \sum_{j=1}^p c_j u_j' M^{-1}\]
+
+On peut ainsi reconstituer le tableau de données (centré) au moyen des composantes principales et facteurs principaux. On a également:
+\[M V = \sum_{j=1}^p \lambda_j u_j u_j' M^{-1}\]
+
+\[V M = \sum_{j=1}^p \lambda_j a_j a_j' M\]
+
+Lorsque $M = I$, $X = \sum_{j=1}^k c_j u_j' = \sum_{j=1}^k \lambda_j^{1/2} z_j v_j'$ où les $z_j$ sont les vecteurs propres de norme 1 de $X' X$ et les $v_j$ les vecteurs propres de $X X'$ de norme 1 (décomposition en valeurs singulières).
+
+Si l'on se contente de la somme des $k$ premiers termes on obtient alors la meilleure
+approximation de $X$ pour une matrice de rang $k$ au sens des moindres carrés (théorème
+d'Eckart-Young).
+
+\subsection{Cas usuel. La métrique $D/s^2$ ou l'ACP sur données centrées-réduites}
+
+Le choix de la métrique $M$ est toujours délicat: seul l'utilisateur peut définir correctement
+la notion de distance entre individus.
+
+Prendre $M = I$ revient à travailler sur la matrice $V$ des variances-covariances, il n'y a pas
+alors de distinction entre axes principaux et facteurs principaux. Cependant, les résultats obtenus ne sont pas invariants si l'on change linéairement l'unité de mesure des variables.
+Les covariances sont multipliées par un facteur $k$, la variance par un facteur $k^2$ si l'on choisit une unité de mesure $k$ fois plus petite pour une variable.
+
+Le choix de $M = D/s^2$ est le plus communément fait, et a pour conséquence de rendre les
+distances entre individus invariantes par transformation linéaire séparée de chaque variable
+et de s'affranchir des unités de mesure ce qui est particulièrement intéressant lorsque les
+variables sont hétérogènes.
+
+On sait que l'usage de cette métrique est équivalent à la réduction des variables (division
+par l'écart-type).
+
+En pratique on travaillera donc sur le tableau centré-réduit $Z$ associé à $X$ et on utilisera la
+métrique $M = I$.
+
+Comme la matrice de variance-covariance des données centrées et réduites est la matrice de corrélation $R$, les facteurs principaux seront donc les vecteurs propres successifs de
+$R$ rangés selon l'ordre décroissant des valeurs propres. $R u_j = \lambda_j u_j$ avec $u_j' u_j = 1$.
+
+La première composante principale $c_1$ (et les autres sous la contrainte d'orthogonalité)
+est la combinaison linéaire des variables centrées et réduites ayant une variance maximale
+
+\[c_1 = Z u_1\]
+
+On a de plus la propriété suivante lorsqu'on travaille sur données centrées et réduites:
+
+\textbf{PROPRIÉTÉ}
+
+$c_1$ est la variable la plus liée aux $x_j$ au sens de la somme des carrés des corrélations:
+\[\sum_{j=1}^p r^2(c_1, x_j)\] est maximal.
+
+\textbf{Démonstration:} Supposons les variables centrées:
+\[r^2(c, x_j) = r^2(c, z_j)\] où $z_j = x_j/s_j$ est la variable centrée-réduite associée à $x_j$:
+
+Si $V(c) = 1$:
+\[r(c, z_j) = \frac{\operatorname{cov}(c, z_j)}{V(c) V(z_j)} = \operatorname{cov}(c, z_j)\]
+
+car $V(z_j) = 1$.
+
+\[ \operatorname{cov}(c, z_j) = c' D z_j / n \]
+
+\[z_j' D z_j = n\]
+
+Or:
+\[\sum_{j=1}^p r^2(c, x_j) = \sum_{j=1}^p r^2(c, z_j) = \sum_{j=1}^p \frac{(c' D z_j)^2}{n^2} = \frac{1}{n^2} c' D Z Z' D c\]
+
+Comme $Z' D Z = n R$, il vient:
+\[\sum_{j=1}^p r^2(c, x_j) = \frac{1}{n^2} c' D n R D c = \frac{1}{n} c' R D c\]
+
+Le maximum de ce quotient est donc atteint pour $c$ vecteur propre de $R D$ associé à sa plus
+grande valeur propre:
+\[R D c = \lambda c\]
+
+On en déduit que $c$ est combinaison linéaire des $z_j$ donc que $c = Z u$;
+\[Z' D Z u = n R u = \lambda u\]
+
+Comme $Z$ est de rang $p$, $R u = (\lambda/n) u$.
+
+Pour résumer: l'ACP revient à remplacer les variables $x_1, x_2, \dots, x_p$ qui sont corrélées,
+par de nouvelles variables, les composantes principales $C_1, C_2, \dots$ combinaisons linéaires
+des $x_i$ non corrélées entre elles, de variance maximale et les plus liées en un certain sens
+aux $x_i$: l'ACP est une méthode factorielle linéaire.
+
+\section{INTERPRÉTATION DES RÉSULTATS}
+
+L'ACP construit de nouvelles variables, artificielles et fournit des représentations
+graphiques permettant de visualiser les relations entre variables ainsi que l'existence éventuelle de groupes d'individus et de groupes de variables.
+
+L'interprétation des résultats est une phase délicate qui doit se faire en respectant une
+démarche dont les éléments sont les suivants.
+
+\subsection{Qualité des représentations sur les plans principaux}
+
+Le but de l'ACP étant d'obtenir une représentation des individus dans un espace de
+dimension plus faible que $p$, la question se pose d'apprécier la perte d'information subie et
+de savoir combien de facteurs retenir.
+
+\subsubsection{Le pourcentage d'inertie}
+
+Le critère habituellement utilisé est celui du pourcentage d'inertie totale expliquée.
+On mesure la qualité de $F_k$ par:
+
+\[\frac{\sum_{j=1}^k \lambda_j}{\sum_{j=1}^p \lambda_j}\]
+
+Si par exemple
+\[\frac{\lambda_1 + \lambda_2}{\sum_{j=1}^p \lambda_j} \geq 0.9\]
+
+On conçoit clairement que le nuage de points est presque
+aplati sur un sous-espace à deux dimensions et qu'une représentation du nuage dans le plan
+des deux premiers axes principaux sera très satisfaisante.
+
+L'appréciation du pourcentage d'inertie doit faire intervenir le nombre de variables
+initiales: un \% de 10 \% n'a pas le même intérêt sur un tableau de 20 variables et sur un
+tableau de 100 variables.
+
+\subsubsection{Mesures locales}
+
+Le pourcentage d'inertie expliquée est un critère global qui doit être complété par d'autres
+considérations.
+
+Supposons que le plan des deux premiers axes porte une inertie totale importante
+$(\lambda_1 + \lambda_2$ élevé) et que en projection sur ce plan deux individus soient très proches:
+la figure 7.5 montre que cette proximité peut être illusoire si les deux individus se trouvent éloignés dans
+
+Il faut en fait envisager pour chaque individu $e_i$ la qualité de sa représentation. Celle-ci
+est souvent définie par le cosinus de l'angle entre le plan principal et le vecteur $e_i$. Si ce
+cosinus est grand, $e_i$ est voisin du plan, on pourra alors examiner la position de sa projection sur le plan par rapport à d'autres points; si ce cosinus est faible on se gardera de toute
+conclusion.
+
+N.B.: Cette mesure du cosinus est d'autant meilleure que $e_i$ est éloigné de $g$; si $e_i$ est
+proche de $g$, la valeur du cosinus peut ne pas être significative.
+
+Bien que moins utilisée, une mesure liée à la distance entre $e_i$ et $F_k$ semble préférable: en
+particulier la quantité:
+\[\frac{d(e_i, F_k)}{d(e_i, g)}\]
+
+qui compare la distance entre $e_i$ et $F_k$ à la moyenne des carrés des distances de tous les individus à $F_k$ présente un intérêt statistique certain (on peut la comparer à une variable de
+Laplace-Gauss centrée-réduite).
+
+\subsubsection{À propos de la représentation simultanée des individus et des variables en ACP}
+
+Certains logiciels prévoient la possibilité de superposer la représentation des individus (plan
+principal) et celle des variables (cercle des corrélations) avec éventuellement des échelles
+différentes.
+
+Il convient d'être très prudent: en effet individus et variables sont des éléments d'espaces différents: si une variable définit une direction de l'espace des individus elle ne peut
+être résumée à un point et on ne peut interpréter une proximité entre points-variables
+et points-individus.
+
+Les deux représentations individus et variables se complètent mais ne peuvent être superposées, sauf en utilisant la technique particulière du "biplot" (voir Gower et Hand, 1996).
+
+\subsection{Choix de la dimension}
+
+Le principal intérêt de l'ACP consistant à réduire la dimension de l'espace des individus
+le choix du nombre d'axes à retenir est un point essentiel qui n'a pas de solution rigoureuse.
+
+Remarquons tout d'abord que la réduction de dimension n'est possible que s'il y a redondance entre les variables $X_1, X_2, \dots, X_p$: si celles-ci sont indépendantes, ce qui est un résultat fort intéressant en soi, l'ACP sera inefficace à réduire la dimension.
+
+\subsubsection{Critères théoriques}
+
+Ceux-ci consistent à déterminer si les valeurs propres sont significativement différentes
+entre elles à partir d'un certain rang: si la réponse est négative on conserve les premières
+valeurs propres. On fait pour cela l'hypothèse que les $n$ individus proviennent d'un tirage
+aléatoire dans une population gaussienne où $\lambda_{k+1} = \lambda_{k+2} = \dots = \lambda_p$.
+
+Si cela est vrai la moyenne arithmétique $\bar{\lambda}$ des $p-k$ dernières valeurs propres et leur moyenne géométrique $\tilde{\lambda}$ doivent être peu différentes; on admet que:
+
+\[\frac{(p-k+1)(\bar{\lambda} - \tilde{\lambda})}{\bar{\lambda}} \sim \chi^2\]
+
+avec $df = (p-k+2)(p-k-1)/2$.
+
+On rejettera l'hypothèse d'égalité des $p-k$ valeurs propres si $\chi^2$ est trop grand.
+
+On peut également construire des intervalles de confiance pour les différentes valeurs
+propres en utilisant les formules de T.W. Anderson si $n$ est grand: si $\hat{\lambda}_i$ est la $i$ème valeur
+propre de l'ACP, l'intervalle de confiance à 95 \% est donné par:
+
+\[\hat{\lambda}_i \pm 1.96 \sqrt{\frac{2 \hat{\lambda}_i^2}{n}}\]
+
+(voir chapitre 13).
+
+Ces propriétés ne sont malheureusement utilisables que pour des matrices de variance
+dans le cas gaussien $p$-dimensionnel. Elles ne s'appliquent pas pour les matrices de corrélation ce qui est le cas le plus fréquent en pratique; et ne doivent être utilisées qu'à titre
+indicatif.
+
+\subsubsection{Critères empiriques}
+
+Ce sont en réalité les seuls applicables. Le critère de Kaiser est le plus connu:
+Lorsqu'on travaille sur données centrées réduites on retient les composantes principales
+correspondant à des valeurs propres supérieures à 1: en effet les composantes principales
+seules les composantes de variance supérieure à celle des variables initiales présentent un intérêt.
+
+\[\lambda_j > 1\]
+
+Cependant le seuil de 1 ne peut être considéré comme absolu: 1.1 est-il significativement
+supérieur à 1?
+
+Dans un travail récent (Karlis, Saporta, Spinakis, 2003) nous avons montré l'intérêt du
+critère suivant, inspiré par une approche de type « carte de contrôle » où on considère comme
+intéressantes les valeurs propres qui dépassent leur moyenne (qui vaut ici 1) de plus de deux
+écart-types.
+
+Comme:
+\[E(\lambda_j) = 1 + \frac{p(p-1)}{n(n-1)}\]
+
+et que l'espérance du carré du coefficient de corrélation entre deux variables indépendantes
+vaut $\frac{p}{n(n-1)}$, on trouve que:
+
+\[E(\lambda_j^2) = p + \frac{p(p-1)}{n(n-1)}\]
+
+la dispersion espérée des valeurs propres vaut alors:
+
+\[\sigma^2 = E(\lambda_j^2) - [E(\lambda_j)]^2 = \frac{p(p-1)}{n(n-1)} + \frac{p(p-1)}{n(n-1)} = \frac{2p(p-1)}{n(n-1)}\]
+
+Nous proposons donc de ne retenir que les valeurs propres telles que:
+\[\lambda_j > 1 + 2 \sqrt{\frac{2p(p-1)}{n(n-1)}}\]
+
+On recommande également de détecter sur le diagramme de décroissance des valeurs
+propres l'existence d'un coude (voir figure 7.8) séparant les valeurs propres utiles de celles
+qui sont peu différentes entre elles et n'apportent pas d'information. Il faut noter ici que les
+critères formels basés sur les différences successives entre valeurs propres sont en général
+moins performants que l'inspection visuelle: nous ne les donnerons donc pas.
+
+Enfin il faut rappeler avec force que les critères du type « extraire au moins x \% » de
+l'inertie souvent prônés par des praticiens, sont dénués de fondement et doivent être bannis, car on ne peut donner de seuil universel sans tenir compte de la taille du tableau et de
+la force des corrélations entre variables.
+
+Aucun des critères présentés n'est absolu: l'interprétation des résultats d'une analyse
+relève aussi du métier du statisticien.
+
+\subsection{Interprétation « interne »}
+
+\subsubsection{Corrélations « variables - facteurs »}
+
+La méthode la plus naturelle pour donner une signification à une composante principale
+$c_j$ est de la relier aux variables initiales $x_i$ en calculant les coefficients de corrélation linéaire $r(c_j, x_i)$ et en s'intéressant aux plus forts coefficients en valeur absolue.
+
+Lorsque l'on choisit la métrique $D/s^2$ ce qui revient à travailler sur données centréesréduites et donc à chercher les valeurs propres et vecteurs propres de $R$, le calcul de $r(c_j, x_i)$
+est particulièrement simple:
+
+En effet:
+\[r(c_j, x_i) = r(c_j, z_i) = \frac{c_j' D z_i}{\sqrt{V(c_j)} \sqrt{V(z_i)}} = \frac{c_j' D z_i}{\sqrt{\lambda_j}}\]
+
+car $V(z_i) = 1$.
+
+\[c_j' D z_i = (Z u_j)' D z_i = u_j' Z' D z_i\]
+
+$Z' D Z$ est la $i$ème ligne de $Z' D Z = n R$, donc $(Z' D Z)_{i.} = n R_{i.}$, donc $(z_i' D Z)_{.} = n R_{i.}'$.
+
+Il vient:
+\[r(c_j, x_i) = \frac{u_j' (n R_{i.})'}{\sqrt{n \lambda_j}} = \sqrt{n} \frac{(R u_j)_i}{\sqrt{\lambda_j}}\]
+
+Comme $R u_j = \lambda_j u_j$, il vient:
+\[r(c_j, x_i) = \sqrt{\frac{n}{\lambda_j}} \lambda_j u_{ji} = \sqrt{\frac{n \lambda_j}{\lambda_j}} u_{ji} = \sqrt{n} u_{ji}\]
+
+Ces calculs s'effectuent pour chaque composante principale. Pour un couple de composantes principales $c_1$ et $c_2$ par exemple on synthétise usuellement les corrélations sur une
+figure appelée « cercle des corrélations » où chaque variable $x_j$ est repérée par un point
+d'abscisse $r(c_1, x_j)$ et d'ordonnée $r(c_2, x_j)$.
+
+Ainsi la figure 7.6 montre une première composante principale très corrélée positivement avec les variables 1, 2 et 3, anticorrélée avec les variables 4 et 5 et non corrélée avec
+6, 7 et 8.
+
+Par contre la deuxième composante principale oppose la variable n°8 aux variables 6 et 7.
+
+On se gardera d'interpréter des proximités entre points variables, si ceux-ci ne sont pas
+proches de la circonférence.
+
+Dans le cas de la métrique $D/s^2$ c'est-à-dire, rappelons-le, de l'ACP sur données centrées
+réduites, le cercle des corrélations n'est pas seulement une représentation symbolique commode: c'est la projection de l'ensemble des variables centrées-réduites sur le sous-espace
+engendré par $c_1$ et $c_2$. En effet les $z_j$ étant de variance un, sont situées sur la surface de la
+sphère unité de l'espace des variables (isomorphe à $\mathbb{R}^p$) (fig. 7.7). Projetons les extrémités
+des vecteurs $z_j$ sur le sous-espace de dimension 2 engendré par $c_1$ et $c_2$ (qui sont orthogonales) les projections tombent à l'intérieur du grand cercle intersection de la sphère avec le plan
+$c_1, c_2$. La projection se faisant avec la métrique $D$ de l'espace des variables, $z_j$ se projette sur
+l'axe engendré par $c_1$ en un point d'abscisse $\cos(z_j, c_1)$ qui n'est autre que le coefficient de
+corrélation linéaire $r(x_j, c_1)$.
+
+Le cercle de corrélation est donc, dans l'espace des variables, le pendant exact de la
+projection des individus sur le premier plan principal.
+
+Comme $\lambda_k = \sum_{j=1}^p r^2(c_k, x_j)$ on appelle parfois contribution de la variable $j$ à l'axe $k$ le
+rapport:
+\[\frac{r^2(c_k, x_j)}{\lambda_k}\]
+
+mais cette quantité ne présente que peu d'intérêt en ACP et n'apporte rien de plus que le
+coefficient de corrélation.
+
+\subsubsection{La place et l'importance des individus}
+
+Dire que $c_1$ est très corrélée avec une variable $x_i$ signifie que les individus ayant une forte
+coordonnée positive sur l'axe 1 sont caractérisés par une valeur de $x_i$ nettement supérieure à la
+moyenne (rappelons que l'origine des axes principaux représente le centre de gravité du nuage).
+
+Inversement si les individus ne sont pas anonymes, ils aident à l'interprétation des axes
+principaux et des composantes principales: on recherchera par exemple les individus opposés le long d'un axe.
+
+Il est très utile aussi de calculer pour chaque axe la contribution apportée par les divers
+individus à cet axe. Considérons la $k$ème composante $C_k$, soit $C_{k,i}$ la valeur de cette composante
+pour le $i$ème individu. On a:
+\[\sum_{i=1}^n C_{k,i}^2 = \lambda_k\]
+
+La contribution de l'individu $i$ à la composante $C_k$ est définie par:
+\[\frac{C_{k,i}^2}{\lambda_k}\]
+
+La considération des contributions, quand elles ne sont pas excessives, aide à l'interprétation des axes.
+
+Normalement, et ceci surtout pour les premières composantes, il n'est pas souhaitable
+qu'un individu ait une contribution excessive car cela serait un facteur d'instabilité, le fait de
+retirer cet individu modifiant profondément le résultat de l'analyse. Si ce cas se produisait il
+y aurait intérêt à effectuer l'analyse en éliminant cet individu puis en le mettant en élément
+supplémentaire, s'il ne s'agit pas d'une donnée erronée (erreur de saisie ...) qui a été ainsi
+mise en évidence.
+
+Cette remarque est surtout valable lorsque les individus constituent un échantillon et ne
+présentent donc pas d'intérêt en eux-mêmes.
+
+Lorsque les poids des individus sont tous égaux à $1/n$ les contributions n'apportent pas
+plus d'information que les coordonnées.
+
+Lorsque $n$ est grand, il est souvent possible de considérer que les coordonnées sur une composante principale (du moins pour les premières composantes) qui ont pour moyenne 0 et pour
+variance la valeur propre, sont distribuées selon une loi de Laplace-Gauss. Alors
+\[\frac{C_{k,i}^2}{\lambda_k} \sim \frac{\chi^2}{n}\]
+
+avec 1 degré de liberté et la contribution $\frac{C_{k,i}^2}{n \lambda_k}$ a une probabilité 0.05 de dépasser
+$3.84/n$. On pourra donc considérer qu'un individu a une contribution significative si elle
+dépasse 4 fois son poids.
+
+\subsubsection{Effet « taille »}
+
+Lorsque toutes les variables $X_j$ sont corrélées positivement entre elles, la première composante principale définit un « facteur de taille ».
+
+On sait qu'une matrice symétrique ayant tous ses termes positifs admet un premier vecteur
+propre dont toutes les composantes sont de même signe (théorème de Frobenius): si l'on les choisit positives la première composante principale est alors corrélée positivement avec toutes
+les variables et les individus sont rangés sur l'axe 1 par valeurs croissantes de l'ensemble des
+variables (en moyenne). Si de plus les corrélations entre variables sont toutes de même ordre
+la première composante principale est proportionnelle à la moyenne des variables initiales:
+\[\frac{1}{p} \sum_{j=1}^p X_j\]
+
+La deuxième composante principale différencie alors des individus de « taille » semblable:
+on l'appelle facteur de « forme ».
+
+\subsection{Interprétation externe: variables et individus supplémentaires, valeur-test}
+
+Les interprétations fondées sur les remarques précédentes présentent le défaut d'être
+tautologiques: on explique les résultats à l'aide des données qui ont servi à les obtenir.
+
+On risque de prendre pour une propriété des données ce qui pourrait n'être qu'un artefact
+dû à la méthode: il n'est pas étonnant par exemple de trouver de fortes corrélations entre la
+première composante principale $C_1$ et certaines variables puisque $C_1$ maximise:
+\[\sum_{j=1}^p r^2(C_1, x_j)\]
+
+On n'est donc pas sûr d'avoir découvert un phénomène significatif.
+
+Par contre si l'on trouve une forte corrélation entre une composante principale et une variable qui n'a pas servi à l'analyse, le caractère probant de ce phénomène sera bien plus élevé.
+
+D'où la pratique courante de partager en deux groupes l'ensemble des variables: d'une part
+les variables « actives » qui servent à déterminer les axes principaux, d'autre part les variables
+« passives » ou supplémentaires que l'on relie a posteriori aux composantes principales.
+
+On distinguera le cas des variables numériques supplémentaires de celui des variables
+qualitatives supplémentaires.
+
+Les variables numériques supplémentaires peuvent être placées dans les cercles de corrélation: il suffit de calculer le coefficient de corrélation entre chaque variable supplémentaire
+$y$ et les composantes principales $C_1, C_2, \dots$. On peut alors utiliser les résultats du chapitre
+précédent pour détecter une corrélation significative.
+
+Une variable qualitative supplémentaire correspond à la donnée d'une partition des $n$ individus en $k$ catégories: on peut faire apparaître par des symboles différents les individus de
+chaque catégorie sur les plans principaux. En général on se contente de représenter chaque
+catégorie par son centre de gravité: on peut alors mesurer au moyen du rapport de corrélation la liaison entre une variable qualitative supplémentaire et une composante principale et
+vérifier son caractère significatif au moyen du $F$ de Fisher-Snedecor (voir chapitre 6).
+
+Cependant la pratique la plus efficace consiste à calculer ce que l'on appelle la valeurtest associée à chaque modalité ou catégorie supplémentaire qui mesure sur chaque axe
+la différence entre la moyenne des individus concernés et la moyenne générale (nulle
+par construction puisque les composantes principales sont centrées). Plus précisément il
+s'agit de la différence divisée par l'écart-type correspondant au raisonnement suivant (voir
+chapitre 12 et 20): si les $n_i$ individus de la catégorie $i$ étudiée avaient été tirés au hasard avec
+probabilités égales parmi les $n$ de l'ensemble étudié, la moyenne de leurs coordonnées sur
+
+une variable aléatoire de moyenne nulle et de variance $\frac{\lambda_k}{n_i} (\frac{n - n_i}{n - 1})$ serait
+\[\frac{n - n_i}{n - 1} \frac{\lambda_k}{n_i}\]
+
+La valeur-test associée à la coordonnée $g_{i k}$ du centre de gravité est alors:
+\[t_{i k} = \frac{g_{i k}}{\sqrt{\frac{\lambda_k}{n_i} \frac{n - n_i}{n - 1}}}\]
+
+En se référant à la loi de Laplace-Gauss, ce qui se justifie si $n_i$ est assez grand, on décidera qu'une modalité occupe une position significativement différente de la moyenne si en valeur absolue, la valeur-test dépasse 2 voire 3.
+
+On peut également ne pas faire participer à l'analyse une partie des individus (on calcule
+les corrélations sans eux) ce qui permettra de vérifier sur cet échantillon-test des hypothèses
+formulées après une ACP sur les individus actifs. Il est d'ailleurs immédiat de positionner de
+nouveaux individus sur les axes principaux puisqu'il suffit de calculer des combinaisons
+linéaires de leurs caractéristiques.
+
+\section{EXEMPLE}
+
+Les données concernent les caractéristiques de 18 véhicules (anciens ...) et figurent dans
+le tableau 17.1 page 428.
+
+Pour l'analyse en composantes principales, les variables « finition » (qualitative) et « prix »
+ont été mises en éléments supplémentaires, il y a donc 6 variables actives.
+
+\subsection{Valeurs propres}
+
+Comme les variables sont exprimées avec des unités différentes, on effectue l'ACP sur
+données centrées réduites, ce qui conduit à chercher les valeurs et vecteurs propres de la
+matrice de corrélation $R$ présentée en 6.1.2.3.
 
 \begin{thebibliography}{9}
-\bibitem{exemple}
-Auteur. \textit{Titre}. Éditeur, année.
+\bibitem{saporta}
+Saporta, G. \textit{Probabilités, analyses des données et statistiques}. Technip, 1990.
 \end{thebibliography}
 
 \end{document}
