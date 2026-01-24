@@ -6,9 +6,14 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{mdframed}
+\usepackage[most]{tcolorbox}
+\usepackage{amsthm}
 \geometry{margin=2.5cm}
 
-\title{Analyse en Composantes Principales : Etude théorique et application}
+\title{Analyse en Composantes Principales 
+
+Etude théorique et application}
 \author{Youness Moustakim}
 \date{Janvier 2026}
 
@@ -306,12 +311,18 @@ En effet:
 \subsubsection{Projection des individus sur un sous-espace}
 
 Le principe de la méthode est d'obtenir une représentation approchée du nuage des $n$ individus dans un sous-espace de dimension faible. Ceci s'effectue par projection ainsi que
-l'illustre la figure 7.2.
+l'illustre la figure 1.
 
-Le choix de l'espace de projection s'effectue selon le critère suivant qui revient à déformer le moins possible les distances en projection: le sous-espace de dimension $k$ recherché
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{C:/Users/User/Desktop/Capture d’écran_24-1-2026_232818_.jpeg}
+  \caption{Projection de deux points $e_i$ et $e_j$ sur un sous-espace de dimension 2}
+\end{figure}
+
+
+Le choix de l'espace de projection s'effectue de telle sorte que les distances en projections soient le moins déformés possible: le sous-espace de dimension $k$ recherché
 est tel que la moyenne des carrés des distances entre projections soit la plus grande possible.
-(En effet, en projection les distances ne peuvent que diminuer). En d'autres termes il faut que
-l'inertie du nuage projeté sur le sous-espace soit maximale.
+En d'autres termes il faut que l'inertie du nuage projeté sur le sous-espace soit maximale.
 
 Soit $P$ l'opérateur de projection $M$-orthogonale sur $F_k$: $P$ est tel que $P^2 = P$
 et $P'M P = P$.
@@ -319,60 +330,81 @@ et $P'M P = P$.
 Le nuage projeté est alors associé au tableau de données $XP'$, car chaque individu $e_i$
 (ou ligne de $X$) se projette sur $F_k$ selon un vecteur colonne $Pe_i$ ou un vecteur ligne $e_i P'$.
 
-La matrice de variance du tableau $XP'$ est pour des variables centrées:
+La matrice de variance du tableau $XP'$ est pour des variables centrées (matrice de données $X$ centrée):
 \[(XP')'D(XP') = P'V P\]
 
 L'inertie du nuage projeté vaut donc: $\operatorname{Trace}(P'V P M)$.
 
 Par des opérations élémentaires on en déduit:
-\[\operatorname{Trace}(P'V P M) = \operatorname{Trace}(P V M P)\]
 
-car $P'M = M P$
+\[
+\begin{aligned}
+\text{Trace }(PVP'M) &= \text{Trace }(PVMP) 
+&& \text{car } P'M = MP \\
+&= \text{Trace }(VMP^2) 
+&& \text{car Trace } AB = \text{Trace } BA \\
+&= \text{Trace }(VMP) 
+&& \text{car } P \text{ est idempotent}
+\end{aligned}
+\]
 
-\[= \operatorname{Trace}(V M P^2)\]
-
-car $\operatorname{Trace}(AB) = \operatorname{Trace}(BA)$
-
-\[= \operatorname{Trace}(V M P)\]
-
-car $P$ est idempotent
+\vspace{0.8\baselineskip}
 
 Le problème est donc de trouver $P$, projecteur $M$-orthogonal de rang $k$ maximisant
 $\operatorname{Trace}(V M P)$ ce qui déterminera donc $F_k$.
 
-Si $F$ et $G$ sont deux sous-espaces orthogonaux alors:
+\vspace{0.8\baselineskip}
 
+\newpage
+Si $F$ et $G$ sont deux sous-espaces orthogonaux alors:
+\newline
 Il suffit de remarquer que le projecteur associé à la somme directe de deux sous-espaces
 $M$-orthogonaux est la somme des projecteurs associés à chacun des espaces.
-
+\newline
 De ce résultat on déduit le théorème fondamental suivant:
 
-\textbf{THÉORÈME}
+\vspace{0.8\baselineskip}
 
+
+\newtcbtheorem{theoreme}{THÉORÈME}{
+  colframe=black,
+  colback=white,
+  fonttitle=\bfseries,
+  attach title to upper,
+  boxed title style={
+    colback=black,
+    colframe=black,
+  }
+}{th}
+
+\begin{theoreme}
 Soit $F_k$ l'espace portant l'inertie maximale, alors le sous-espace de dimension
 $k + 1$ portant l'inertie maximale est la somme directe de $F_k$ et du sous-espace
 de dimension 1 $M$-orthogonal à $F_k$ portant l'inertie maximale: Les solutions sont
 « emboîtées ».
+\end{theoreme}
 
 \textbf{Démonstration:} Soit $E_{k+1}$ un sous-espace de dimension $k + 1$:
+\newline 
+
 Comme $\dim E_{k+1} = k + 1$ et $\dim F_k = n - k$, on a:
 \[\dim E_{k+1} + \dim F_k = n + 1 > n\]
-
-Soit $b$ un vecteur appartenant à $E_{k+1} \cap F_k$.
-Posons $E_{k+1} = b \oplus G$ où $G$ est le supplémentaire $M$-orthogonal de $b$ dans $E_{k+1}$. $G$ est
-$F_k \oplus b$.
+\newline
+Soit $b$ un vecteur appartenant à $E_{k+1} \cap F_k$. \newline
+Posons $E_{k+1} = b \oplus G$ où $G$ est le supplémentaire $M$-orthogonal de $b$ dans $E_{k+1}$. \newline
+$G$ est donc de dimension $k$ et $F$ = $F_k \oplus b$.
 
 On a:
 \[I_{k+1} = I_b + I_G\]
-
 \[I_k = I_{F_k} + I_b\]
 
 Comme $F_k$ était le sous-espace de dimension $k$ portant l'inertie maximale $I_G \leq I_{F_k}$, donc
-$I_{k+1} \leq I_k + I_{F_k}$ c'est-à-dire $I_{k+1} \leq I_k$ et ceci quel que soit $E_{k+1}$.
+$I_{k+1} \leq I_k + I_{F_k}$ c'est-à-dire $I_{k+1} \leq I_F$ et ceci quel que soit $E_{k+1}$.
 
-Le maximum de l'inertie est donc réalisé pour l'espace $F = b \oplus F_k$ et $b$ doit être tel que:
-$I_b$ soit maximal.
-
+Le maximum de l'inertie est donc réalisé pour l'espace $F = b \oplus F_k$ et $b$ doit être tel que $I_b$ soit maximal.
+\newline
+\vspace{0.8\baselineskip}
+\newline
 Pour obtenir $F_k$ on pourra donc procéder de proche en proche en cherchant d'abord le sous-espace de dimension 1 d'inertie maximale, puis le sous-espace de dimension 1 $M$-orthogonal au précédent d'inertie maximale, etc.
 
 \subsection{Éléments principaux}
@@ -387,9 +419,7 @@ alors:
 \[P = a(a'Ma)^{-1}a'M\]
 
 L'inertie du nuage projeté sur cette droite vaut, d'après ce qui précède:
-\[\operatorname{Trace} V M P = \operatorname{Trace} V M a(a'Ma)^{-1}a'M = \frac{\operatorname{Trace} V M a a'M}{\operatorname{Trace} a'M a}\]
-
-\[\frac{a'M V M a}{a'M a}\]
+\[\operatorname{Trace} V M P = \operatorname{Trace} V M a(a'Ma)^{-1}a'M = \frac{\operatorname{Trace} V M a a'M}{a'M a} = \frac{a'M V M a}{a'M a}\]
 
 puisque $a'M V M a$ est un scalaire.
 
@@ -400,48 +430,59 @@ si $M = I$.
 
 Pour obtenir le maximum de cette expression par rapport à $a$:
 
-\[\frac{\partial}{\partial a} \left( \frac{a'M V M a}{a'M a} \right)\]
+\[\frac{\partial}{\partial a} \left( \frac{a'M V M a}{a'M a} \right)\ = \frac{(a'Ma) 2 M V M a - (a'M V M a) 2 M a}{(a'M a)^2} = 0\]
 
 D'où:
 
-\[(a'M a)^2 M V M a - (a'M V M a)^2 M a = 0\]
+\[(a'M a) 2 M V M a - (a'M V M a) 2 M a = 0\]
 
 Soit:
 
-\[M V M a = \lambda \frac{a'M V M a}{a'M a} M a = \lambda a\]
+\[M V M a = (\frac{a'M V M a}{a'M a}) M a\]
 
-car $M$ est régulière. Donc $a$ est vecteur propre de $M V M$. S'il en est ainsi, le critère $a'M V M a$
-vaut $\lambda$. Il faut donc que $\lambda$ soit la plus grande valeur propre de $V M$.
+Soit : 
+
+\[ V M a = \lambda a\ \text {car $M$ est régulière.}\]
+avec \[ \lambda = \frac{a'M V M a}{a'M a}\]
+
+Donc $a$ est vecteur propre de $V M$. S'il en est ainsi, le critère $a'M V M a$ \newline
+vaut $\lambda a' M a$ = $\lambda$. Il faut donc que $\lambda$ soit la plus grande valeur propre de $V M$.
 
 La matrice $V M$ étant $M$-symétrique possède des vecteurs propres $M$-orthogonaux deux
 à deux.
 
 D'où le résultat suivant:
 
-\textbf{THÉORÈME}
-
+\begin{theoreme}  
 Le sous-espace $F_k$ de dimension $k$ est engendré par les $k$ vecteurs propres de $V M$
 associés aux $k$ plus grandes valeurs propres.
+\end{theoreme}
 
 On appelle axes principaux d'inertie les vecteurs propres de $V M$, $M$-normés à 1. Ils sont
 au nombre de $p$.
-
-Un calcul élémentaire montre que les axes principaux sont aussi $V^{-1}$-orthogonaux: on
-montre réciproquement que les axes principaux sont le seul système de vecteurs à la fois
-$M$ et $V^{-1}$-orthogonaux.
-
+\newpage
 \subsubsection{Facteurs principaux}
+À l'axe $a$ est associée la forme linéaire $u = M a$ coordonnée $M$-orthogonale sur l'axe défini par $a$. (Figure 2)
 
-À l'axe principal $a$ $M$-normé à 1 est associé le facteur principal $u = M a$.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{facteurs principaux.jpeg}
+  \caption{Association entre axe principal et facteur principal}
+\end{figure}
 
+$u$ est un élément de $(\mathbb{R}^p)^*$, l'espace dual de l'espace des individus qui définit une combinaison linéaire des variables descriptives $X^1, X^2, \dots, X^p$.
+\newline
+À l'axe principal $a$ $M$-normé à 1 est associé le facteur principal $u = M a$.\newline
 Puisque $a$ était vecteur-propre de $V M$:
 \[V M a = \lambda a \implies M V M a = \lambda M a\]
 
 Soit:
-\[\lambda M a = M V M a\]
+\begin{mdframed}
+\[M V u = \lambda u\]
+\end{mdframed}
 
 Les facteurs principaux sont les vecteurs propres $M^{-1}$-normés de $M V$. En effet, on a vu
-que si $F$ est muni de la métrique $M$, son dual doit être muni de la métrique $M^{-1}$.
+que si $\mathbb{R}^p$ est muni de la métrique $M$, son dual doit être muni de la métrique $M^{-1}$.
 Donc $u'M^{-1} u = 1$.
 
 Les facteurs principaux sont $M^{-1}$ et $V$-orthogonaux.
