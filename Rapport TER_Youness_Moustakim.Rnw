@@ -1,0 +1,675 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{mdframed}
+\usepackage[most]{tcolorbox}
+\usepackage{amsthm}
+\usepackage{url}
+\geometry{margin=2.5cm}
+
+\newtcolorbox{thmbox}{
+	blanker,
+	borderline west={4pt}{0pt}{gray!60},
+	left=12pt,
+	top=4pt,
+	bottom=4pt
+}
+
+\title{Analyse en Composantes Principales \\ Etude théorique et application}
+\author{Youness Moustakim}
+\date{Janvier 2026}
+
+\begin{document}
+	
+\begin{titlepage}
+    \begin{center}
+        % On pousse un peu le tout vers le bas pour centrer dans la page
+        \vspace*{2cm} 
+        
+        % --- NOUVEAU TITRE ---
+        {\LARGE \textsc{Travail Encadré de Recherche}} \\[2cm] 
+        
+        % --- TITRE DU PROJET ---
+        {\Huge \textbf{Analyse en Composantes Principales}} \\[0.5cm] 
+        {\huge Étude théorique et application} \\[2.5cm] 
+        
+        % --- AUTEUR ET DATE ---
+        {\Large Youness Moustakim} \\[0.4cm]
+        {\large \textit{L3 MIASHS MEF - Université de Lille}} \\[0.4cm]
+        {\large Janvier 2026} \\[2cm]
+        
+        % --- ENCADRANT ---
+        {\large \textit{Encadré par :}} \\[0.2cm]
+        {\Large \textbf{Mme Aurore Lavigne}}
+        
+        \vfill 
+    \end{center}
+\end{titlepage}
+
+% --- TABLE DES MATIÈRES SUR UNE NOUVELLE PAGE ---
+\newpage
+\renewcommand{\contentsname}{\centering Table des matières}
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+L'analyse en composantes principales fait partie des méthodes d'analyse de données très utilisée et connue en statistique. Elle consiste à effectuer une projection des données depuis leur espace d'origine dans un espace généralement planaire.
+
+On suppose disposer d'un ensemble $X$ de $N$ données, chacune décrite par $P$ variables, qu'on nomme aussi attributs ou caractères. Si l'on disposait que de deux caractères $X^j$ et $X^k$, on peut tracer le graphe donnant $X^j$ en fonction de $X^k$ et l'on voit s'il y a corrélation linéaire ou non. On voit très vite l'intérêt d'effectuer une projection des données dans un espace de faible dimension si le nombre d'individus est de plus de 2 ou 3 caractères, simplement parce que nous humains, sommes incapables de comprendre un espace de plus de 3 dimensions.
+
+L'idée fondamentale de l'ACP est ainsi: en considérant un nuage de N points (un point correspondant à un individu), on cherche à trouver le plan dans laquelle la projection des points du nuage est la moins déformée possible, donc la plus fidèle possible au nuage de points initial.
+
+Qu'est ce qu'on entend par "la moins déformée"? En effet, avoir une représentation bidimensionnelle du nuage de points la plus fidèle possible, signifie que l'on veut conserver la variance du nuage de points original; si deux individus étaient très différents (éloignés) dans l'espace à $P$ dimensions, on veut qu'ils restent les plus éloignés possible sur le graphique en $2D$.
+
+Dans ce document, nous allons explorer les principes mathématiques sous-jacents à l'ACP, décrire l'algorithme utilisé pour effectuer cette analyse, et illustrer son application à un jeu de données spécifique.
+
+
+\section{Tableaux de données, résumés numériques et espace des individus}
+
+\subsection{Les données et leurs caractéristiques}
+\subsubsection{Tableau de données}
+
+Les observations de $p$ variables sur $n$ individus sont représentées par un tableau de données $X$ de taille $n \times p$ dont le terme général $x_{ij}$ est la valeur de la variable $X_j$ pour l'individu $i$.
+
+\[X = 
+\begin{pmatrix}
+& \vdots &  \\
+\dots & x_{ij} & \dots \\
+& \vdots & 
+\end{pmatrix}
+\]
+
+On identifie une variable $X^{j}$ par la colonne correspondante: une variable n'est rien d'autre qu'une liste des $n$ valeurs qu'elle prend sur les $n$ individus.
+
+\[ X^j = \begin{pmatrix} x_{1j} \\ x_{2j} \\ \vdots \\ x_{nj} \end{pmatrix} \]
+
+On identifiera de même un individu $i$ au vecteur $e_i$ à $p$ composantes correspondant à la ligne $i$ de $X$.
+
+\[ e_i' = \begin{pmatrix} x_{i1} & x_{i2} & \dots & x_{ip} \end{pmatrix}' \]
+
+\subsubsection{centre de gravité}
+
+Le centre de gravité $g$ du nuage des n individus est le point de coordonnées:
+
+\[ g_i'= \begin{pmatrix} \bar{x}^{1} & \bar{x}^{2} & \dots & \bar{x}^{p} \end{pmatrix}' \]
+où $\bar{x}^{j} = \frac{1}{n} \sum_{i=1}^n x_{ij}$ est la moyenne de la variable $X^{j}$.
+
+On a g = $\frac{1}{n} X'1$ où $1$ est le vecteur de $\mathbb{R}^n$ dont toutes les composantes valent 1, çad $1' = (1, 1, \dots, 1)$.
+
+Le tableau $Y$ tel que $y_{i}^j$ = $x_{i}^j - \bar{x}^{j}$ est le tableau des données centrées associé à $X$.
+
+On a $Y = X - 1 g'$ = ($I - \frac{1}{n} 1 1' $) $X$.
+
+l'opérateur de centrage est donc $I - \frac{1}{n} 1 1'$.
+
+\subsubsection{Matrice de variance-covariance}
+
+on a la covariance empirique entre les variables $X^{j}$ et $X^{k}$:
+\[s_{jk} = \frac{1}{n}\sum_{i=1}^n (x_{ij} - \bar{x}^{j})(x_{ik} - \bar{x}^{k}) = \frac{1}{n}\sum_{i=1}^n (x_{i}^j . x_{i}^k) - \bar{x}^{j} \bar{x}^{k}\] 
+
+La matrice de variance-covariance $V$ est la matrice symétrique d'ordre $p$ dont le terme général est $s_{jk}$.
+
+\[V = \begin{pmatrix}
+s_{1}^2 & s_{12} & \dots & s_{1p} \\
+\vdots & s_{2}^2 & \dots & s_{2p} \\
+\vdots &  & \ddots & \vdots \\
+\vdots & \dots & \dots & s_{p}^2
+\end{pmatrix}
+\]
+
+$V$ est telle que: 
+\[V = \frac{1}{n} Y' Y \]
+
+\subsubsection{la matrice de corrélation}
+
+si l'on note $D_{1/s}$ la matrice diagonale des inverses des écarts-types des variables : 
+\[D_{1/s} = \begin{pmatrix}
+\frac{1}{s_1} &  &  & 0 \\
+ & \frac{1}{s_2} &  &  \\
+ & & \ddots & \\
+0 &  & & \frac{1}{s_p}
+\end{pmatrix}
+\]
+
+Le tableau des données centrées et réduites $Z$ tel que :
+$z_{i}^j = \frac{x_{i}^j - \bar{x}^{j}}{s_j}$.
+est donc : \[Z = Y D_{1/s}\]
+
+La matrice regroupant tous les coefficients de corrélation entre les $p$ variables prises deux à deux est la matrice de corrélation $R$ définie par:
+\[R = \begin{pmatrix}
+1 & r_{12} & \dots & r_{1p} \\
+. & 1 &  & . \\
+. &  &  & . \\
+r_{p1} &  &  & 1
+\end{pmatrix}\]
+où $r_{jk} = \frac{s_{jk}}{s_j s_k}$ est le coefficient de corrélation linéaire entre les variables $X^{j}$ et $X^{k}$.
+
+$R$ est la matrice de variance-covariance des données centrées et réduites et résume la structure de dépendance linéaire entre les $p$ variables prises deux à deux.
+\[R = D_{1/s} V D_{1/s} = \frac{1}{n} Z' Z\]
+
+\subsection{Espace des individus}
+
+Chaque individu $e_i$ est un point de l'espace $\mathbb{R}^p$ des variables. Il est donc considéré comme un élément de l'espace vectoriel $F$ : l'espace des individus. L'ensemble des n individus forme un nuage de points dans $F$, et $g$ en est le centre de gravité.
+
+On munit $F$ d'une structure d'espace euclidien afin de définir des distances entre individus.
+
+\subsubsection{Le rôle de métrique}
+
+En physique, la distance entre deux points de l'espace se calcule facilement par la formule de Pythagore : 
+$d^2$ = $(x_1 - x_2)^2 + (y_1 - y_2)^2 + ....$
+
+Puisque les dimensions sont de même nature (longueurs), on les mesure dans la même unité.
+
+Il n'en est pas de même en analyse de données où chaque dimension correspond à une variable qui s'exprime avec son unité particulière;
+
+Comment calculer la distance entre deux individus décrits par les trois caractères : âge, salaire, nombre d'enfants ?
+
+Si l'on veut donner des importances différentes à chaque caractère, on peut pondérer chaque terme de la somme par un coefficient positif $m_j$.
+On prendra alors une formule du type:
+\[d^2(e_i, e_j) = \sum_{k=1}^p m_k (x_{ik} - x_{jk})^2\]
+ce qui revient à multiplier chaque caractère (variable) par $\sqrt{m_k}$ avant de calculer la distance euclidienne classique.
+
+De plus, la formule de Pythagore n'est valable que si les axes sont perpendiculaires, ce que l'on ne peut pas supposer a priori en statistique; On aurait pu représenter les caractères par des axes non orthogonaux.
+On utilisera donc une formule plus générale:
+\[d_M^2(e_i, e_j) = (e_i - e_j)' M (e_i - e_j)\]
+où $M$ est une matrice d'ordre $p$ définie positive symétrique.
+
+L'espace des invididus est donc muni du produit scalaire : 
+\[(e_i, e_j)_M = e_i' M e_j\]
+
+
+En pratique, on choisit souvent $M = I$ (matrice identité) qui revient à utiliser le produit scalaire usuel ou $M = D_{1/s^2}$ (matrice des inverses des variances) qui est la plus utilisée.
+
+\[
+M = D_{1/s^2} =
+\begin{pmatrix}
+\frac{1}{s_1^2} &  &  & 0 \\
+ & \frac{1}{s_2^2} &  &  \\
+  &  & \ddots &  \\
+0 &  &   & \frac{1}{s_p^2}
+\end{pmatrix}
+\]
+
+ce qui revient à diviser chaque caractère par son écart-type, ou de manière équivalente travailler sur des données centrées réduites.
+
+Les avantages de ce choix sont les suivants:
+\begin{itemize}
+\item on s'affranchit des unités de mesure, puisque les nombres $\frac{x_{i}^j}{s_j}$ sont sans dimension;
+\item Il est adapté lorsque les variables sont hétérogènes.
+\item on évite qu'une variable de grande variance domine les autres dans le calcul des distances.
+\end{itemize}
+
+l'utilisation de $M$ = $I$ conduirait à privilégier les variables les plus dispersées, pour lesquelles les différences entre individus sont les plus fortes, et à négliger les différences entre les autres variables.
+
+La métrique $D_{1/s^2}$ rétablit alors l'équilibre en donnant à toutes la variance 1.
+
+\subsubsection{L'inertie}
+
+L'inertie du nuage des n individus est la moyenne des carrés des distances entre les individus et le centre de gravité:
+\[I_g = \frac{1}{n} \sum_{i=1}^n  d^2(e_i, g)\]
+
+On a donc:
+
+\[I_g = \frac{1}{n} \sum_{i=1}^n (e_i - g)' M (e_i - g)\]
+
+or $ g = 0 $ (données centrées), donc : \[I_g = \frac{1}{n} \sum_{i=1}^n e_i' M e_i\]
+
+L'inertie mesure la dispertion des données, càd à quel point les individus sont éloignés du centre de gravité.
+
+Un nuage très serré --> inertie faible.
+
+Un nuage très étalé --> inertie élevée.
+
+
+L'inertie est la trace de la matrice $M V$ (ou $V M$ car elles ont même trace):
+
+\[I_g = \operatorname{Trace}(M V) = \operatorname{Trace}(V M)\]
+
+En effet, $\frac{1}{n} e_i' M e_i$ étant un scalaire, grâce à la commutativité sous la trace : 
+\[I_g = \frac{1}{n} \sum_{i=1}^n e_i' M e_i = \operatorname{Trace}(\frac{1}{n} M X'X) = \operatorname{Trace}(MV)\] 
+
+Dans notre cas $M$ = $D_{1/s^2}$ (données centrées et réduites): 
+
+\[\operatorname{Trace}(M V) = \operatorname{Trace}(D_{1/s^2} V) = \operatorname{Trace}(D_{1/s} V D_{1/s}) = \operatorname{Trace}(R) = p\]
+
+L'inertie est donc égale au nombre de variables $p$ et ne dépend pas des données.
+
+\section{L'analyse}
+
+\subsection{Projection des individus sur un sous-espace}
+
+Le principe de la méthode est d'obtenir une représentation approchée du nuage des $n$ individus dans un sous-espace de dimension faible. Ceci s'effectue par projection ainsi que
+l'illustre la figure 1.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{Capture d’écran_24-1-2026_232818_.jpeg}
+  \caption{Projection de deux points $e_i$ et $e_j$ sur un sous-espace de dimension 2}
+\end{figure}
+
+
+Le choix de l'espace de projection s'effectue de telle sorte que les distances en projection soient le moins déformés possible: le sous-espace de dimension $k$ recherché est tel que la moyenne des carrés des distances entre projections soit la plus grande possible.\\
+\textbf{En d'autres termes, il faut que l'inertie du nuage projeté sur le sous-espace soit maximale.}\\[6pt]
+Soit $P$ l'opérateur de projection orthogonale sur $F_k$: $P$ est tel que $P^2 = P$
+et ${P'P = P}$.\\[6pt]
+Le nuage projeté est alors associé au tableau de données $XP'$, car chaque individu $e_i$
+(ou ligne de $X$) se projette sur $F_k$ selon un vecteur colonne $Pe_i$ ou un vecteur ligne $e_i P'$.\\[6pt]
+La matrice de variance du tableau $XP'$ est pour des variables centrées (matrice de données $X$ centrée):
+\[\frac{1}{n}(XP')'(XP') = \frac{1}{n} P X' X P' = P V P'\]
+
+L'inertie du nuage projeté vaut donc: $\operatorname{Trace}(P V P')$
+
+Par des opérations élémentaires on en déduit:
+
+\[
+\begin{aligned}
+\text{Trace }(PVP') &= \text{Trace }(PVP)
+&& \text{car } P' = P \\
+&= \text{Trace }(VP^2) 
+&& \text{car Trace } AB = \text{Trace } BA \\
+&= \text{Trace }(VP) 
+&& \text{car } P \text{ est idempotent}
+\end{aligned}
+\]
+
+\vspace{0.8\baselineskip}
+
+Le problème est donc de trouver $P$, projecteur orthogonal de rang $k$ maximisant
+$\operatorname{Trace}(V P)$ ce qui déterminera donc $F_k$.
+
+\vspace{0.8\baselineskip}
+
+Si $F$ et $G$ sont deux sous-espaces orthogonaux alors :
+\[
+I_{F \oplus G} = I_F + I_G
+\]
+
+Cette formule explique pourquoi on peut "additionner" les parts de variance (inertie) expliquées par chaque espace (ou axe).  
+
+L'inertie $I_F$ sur un sous-espace $F$ représente la dispersion du nuage de points une fois projeté sur ce sous-espace. Plus l'inertie est grande, plus le sous-espace "résume" bien l'information de départ.
+
+Pourquoi on peut additionner les inerties ? 
+
+Il suffit de remarquer que le projecteur associé à la somme directe de deux sous-espaces orthogonaux est la somme des projecteurs associés à chacun des espaces. 
+
+Comme $F$ et $G$ sont perpendiculaires, la projection sur $F$ et la projection sur $G$ forment un angle droit. On peut donc appliquer le théorème de Pythagore pour la distance de chaque point :
+
+$$(\text{Distance sur } F \oplus G)^2 = (\text{Distance sur } F)^2 + (\text{Distance sur } G)^2$$
+
+Puisque l'inertie est la somme de ces carrés de distances pour tous les individus du tableau $\mathbf{X}$, l'inertie totale captée par les deux espaces réunis est simplement la somme des inerties captées par chaque espace séparément :$$I_{F \oplus G} = I_F + I_G$$
+
+De ce résultat on déduit le théorème fondamental suivant :
+
+\vspace{0.5cm}
+\noindent \textbf{THÉORÈME}
+\begin{thmbox}
+	\textit{Soit $F_k$ un sous-espace portant l'inertie maximale, alors le sous-espace de dimension $k+1$ portant l'inertie maximale est la somme directe de $F_k$ et du sous-espace de dimension $1$ orthogonal à $F_k$ portant l'inertie maximale : Les solutions sont « emboîtées ».}
+\end{thmbox}
+\vspace{0.5cm}
+
+\noindent $\blacksquare$ \textbf{Démonstration} : Soit $E_{k+1}$ un sous-espace de dimension $k+1$.
+
+Comme $\dim E_{k+1} = k+1$ et $\dim F_k^\perp = n-k$, on a :
+\[
+\dim (E_{k+1} \cap F_k^\perp) \ge 1
+\]
+
+\noindent car : \hfill $\dim E_{k+1} + \dim F_k^\perp = n+1 > n$ \hfill\null
+
+\vspace{0.3cm}
+Soit $\mathbf{b}$ un vecteur appartenant à $E_{k+1} \cap F_k^\perp$.
+
+Posons $E_{k+1} = \mathbf{b} \oplus G$ où $G$ est le supplémentaire orthogonal de $\mathbf{b}$ dans $E_{k+1}$. $G$ est donc de dimension $k$ et $F = F_k \oplus \mathbf{b}$.
+
+On a :
+\begin{align*}
+	I_{k+1} &= I_{\mathbf{b}} + I_G \\
+	I_F &= I_{F_k} + I_{\mathbf{b}}
+\end{align*}
+
+Comme $F_k$ était le sous-espace de dimension $k$ portant l'inertie maximale $I_G \le I_{F_k}$, donc $I_{k+1} \le I_{\mathbf{b}} + I_{F_k}$, c'est-à-dire $I_{k+1} \le I_F$ et ceci quel que soit $E_{k+1}$.
+
+Le maximum de l'inertie est donc réalisé pour l'espace $F = \mathbf{b} \oplus F_k$ et $\mathbf{b}$ doit être tel que $I_{\mathbf{b}}$ soit maximal.
+
+Pour obtenir $F_k$ on pourra donc procéder de proche en proche en cherchant d'abord le sous-espace de dimension 1 d'inertie maximale, puis le sous-espace de dimension 1 orthogonal au précédent d'inertie maximale, etc. \hfill $\blacksquare$
+
+\subsection{Éléments principaux}
+
+\subsubsection{Axes principaux}
+
+Nous devons chercher la droite de $\mathbb{R}^p$ passant par $g$ (l'origine dans notre cas puisqu'on travaille sur des données centrées réduites) maximisant l'inertie du nuage projeté sur cette droite.
+
+Soit $a$ un vecteur porté par cette droite; le projecteur orthogonal sur la droite est
+alors:
+\[P = a(a'a)^{-1}a'\]
+
+
+L'inertie du nuage projeté sur cette droite vaut, d'après ce qui précède:
+
+\[\operatorname{Trace} V P = \operatorname{Trace} V a(a'a)^{-1}a' = \frac{1}{a' a} \operatorname{Trace} V a a' = \frac{1}{a' a} \operatorname{Trace} a' V a = \frac{a' V a}{a' a}\]
+
+puisque $a' V  a$ est un scalaire.\\[6pt]
+
+Pour obtenir le maximum de cette expression par rapport à $a$:
+
+\[\frac{\partial}{\partial a} \left( \frac{a' V  a}{a' a} \right)\ = \frac{(a'a) 2  V  a - (a' V  a) 2  a}{(a' a)^2} = 0\]
+
+D'où:
+
+\[(a'a) 2  V  a - (a' V  a) 2  a = 0\]
+
+Soit:
+
+\[ V  a = (\frac{a' V  a}{a' a})  a\]
+
+Soit : 
+
+\[ V  a = \lambda a\ \]
+avec \[ \lambda = \frac{a' V  a}{a' a}\]\\[6pt]
+Donc $a$ est vecteur propre de $V$. S'il en est ainsi, le critère $a' V a$ vaut $\lambda a' a$ = $\lambda$.\\
+Il faut donc que $\lambda$ soit la plus grande valeur propre de $V$.\\
+La matrice $V $ étant symétrique possède des vecteurs propres orthogonaux deux
+à deux.
+\\[10pt]
+D'où le résultat suivant:
+
+\begin{thmbox}
+	\textit{Le sous-espace $F_k$ de dimension $k$ est engendré par les $k$ vecteurs propres de $V $
+		associés aux $k$ plus grandes valeurs propres.}
+\end{thmbox}
+
+On appelle axes principaux d'inertie les vecteurs propres de $V $,normés à 1.\\
+Ils sont au nombre de $p$.
+
+\subsubsection{Facteurs principaux}
+À l'axe principal $\mathbf{a}$ est associée la forme linéaire $\mathbf{u}$ (combinaison linéaire des variables). Sous la métrique identité, l'axe et le facteur se confondent :
+\begin{equation}
+	\mathbf{u} = \mathbf{a}
+\end{equation}
+
+Puisque $\mathbf{a}$ est un vecteur propre de la matrice de corrélation $\mathbf{V}$, le facteur $\mathbf{u}$ vérifie l'équation :
+\begin{equation}
+	\mathbf{V}\mathbf{u} = \lambda \mathbf{u}
+\end{equation}
+
+Les facteurs principaux sont les vecteurs propres de $\mathbf{V}$, normés à 1 ($\mathbf{u}'\mathbf{u} = 1$) et orthogonaux deux à deux.
+
+\subsubsection{Composantes principales}
+
+Ce sont les nouvelles variables définies par les facteurs principaux, représentant les coordonnées des individus sur les axes :
+\begin{equation}
+	\mathbf{c} = \mathbf{Xu}
+\end{equation}
+
+La variance d'une composante principale est égale à la valeur propre $\lambda$ associée :
+\begin{equation}
+	\mathbb{V}(\mathbf{c}) = \mathbf{u}'\mathbf{Vu} = \lambda
+\end{equation}
+
+Les $\mathbf{c}$ sont les combinaisons linéaires des variables d'origine $x_1, \dots, x_p$ de variance maximale sous la contrainte de normalisation $\mathbf{u}'\mathbf{u} = 1$. Elles sont elles-mêmes vecteurs propres de la matrice $\mathbf{XX'D}$ :
+\begin{equation}
+	\mathbf{XX'Dc} = \lambda \mathbf{c}
+\end{equation}
+
+
+\section{Interprétation des résultats}
+
+\subsection{Qualité des représentations sur les plans principaux}
+
+Le but de l'ACP étant d'obtenir une représentation des individus dans un espace de dimension plus faible que $p$, il convient d'apprécier la perte d'information subie.
+
+\subsubsection{Le pourcentage d'inertie}
+
+Le critère usuel pour mesurer la qualité d'un sous-espace $F_k$ est le pourcentage d'inertie totale expliquée. Dans le cas de données centrées-réduites ($M=I$), l'inertie totale $I_g$ est égale au nombre de variables $p$. La qualité de $F_k$ se mesure par :
+
+\begin{equation}
+	\frac{\lambda_1 + \lambda_2 + \dots + \lambda_k}{p} = \frac{\sum_{j=1}^k \lambda_j}{\sum_{j=1}^p \lambda_j}
+\end{equation}
+
+Si, par exemple, ce ratio atteint 0,9 pour deux axes, on considère que le nuage de points est presque contenu dans un plan, rendant la représentation très satisfaisante.
+
+\subsubsection{Mesures locales}
+
+Le pourcentage d'inertie est un critère global. Pour chaque individu $e_i$, on définit la qualité de sa représentation par le cosinus au carré de l'angle $\theta$ entre le vecteur $e_i$ et le plan principal.
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{proximite projection.jpeg}
+  \caption{Projection de deux points $e_1$ et $e_2$ sur un sous-espace de dimension 2}
+\end{figure}
+
+
+
+
+
+
+Si ce cosinus est élevé, l'individu est proche du plan et sa position relative par rapport aux autres points est fiable. Si le cosinus est faible, l'individu est mal représenté sur ce plan. 
+
+\textit{N.B. : Cette mesure est d'autant plus significative que l'individu est éloigné du centre de gravité $g$.}
+
+Une autre mesure consiste à comparer la distance entre $e_i$ et $F_k$ à la moyenne des carrés des distances de tous les individus à $F_k$ via la quantité :
+
+\begin{equation}
+	\frac{d(e_i ; F_k)}{\sqrt{p - \lambda_1 - \lambda_2 - \dots - \lambda_k}} (\text{signe de } c_i^{k+1})
+\end{equation}
+
+\subsubsection{À propos de la représentation simultanée}
+
+Il convient d'être très prudent lors de la superposition des individus (plan principal) et des variables (cercle des corrélations). Ces deux éléments appartiennent à des espaces différents. Une proximité entre un point-individu et un point-variable n'est pas directement interprétable, sauf en utilisant des techniques spécifiques comme le \textit{biplot}.
+
+\subsection{Choix de la dimension}
+
+L'objectif est de réduire l'espace des individus en ne retenant que les axes apportant une information significative. Ainsi le choix du nombre d'axes à retenir est un point essentiel.
+
+Généralement, on utilise les critères suivantes:
+
+\begin{itemize}
+	\item \textbf{Critère de Kaiser} : On retient les axes dont la valeur propre est supérieure à la moyenne, soit $\lambda > 1$. Cela signifie que l'axe explique plus de variance qu'une variable initiale seule.
+	\item \textbf{Critère de Karlis, Saporta et Spinakis} : Pour tenir compte du "bruit" lié à la taille du tableau ($n, p$), on retient les axes tels que :
+	\begin{equation}
+		\lambda > 1 + 2 \sqrt{\frac{p - 1}{n - 1}}
+	\end{equation}
+\end{itemize}
+
+
+
+
+\subsection{Interprétation « interne »}
+
+L'interprétation dite « interne » consiste à donner un sens statistique et géométrique aux résultats en analysant les liens entre les variables d'origine, les axes et les individus.
+
+\subsubsection{Corrélations « variables - facteurs »}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{cercle de correlation.jpeg}
+	\caption{La première composante principale très corrélée positivement avec les variables 1, 2 et 3, anticorrélée avec les variables 4 et 5 et non corrélée avec 6, 7 et 8.}
+\end{figure}
+
+Pour donner une signification à une composante principale $c_\alpha$, on calcule ses coefficients de corrélation avec les variables initiales $x^j$. Dans le cadre de l'ACP normée ($M = I$), puisque les variables sont réduites ($s_j = 1$), le calcul se simplifie :
+\begin{equation}
+	r(c_\alpha ; x^j) = \sqrt{\lambda_\alpha} u_{\alpha,j}
+\end{equation}
+où $u_{\alpha,j}$ est la $j$-ème composante du vecteur propre normé associé à la valeur propre $\lambda_\alpha$. 
+
+Ces coefficients permettent de construire le \textbf{cercle des corrélations}. Une variable est d'autant mieux représentée qu'elle est proche du bord du cercle. Les angles entre les vecteurs-variables permettent d'interpréter leurs corrélations : des vecteurs proches indiquent des variables fortement corrélées positivement, tandis que des vecteurs opposés indiquent une corrélation négative.
+
+
+\newpage
+\subsubsection{Place et importance des individus}
+
+L'interprétation s'appuie également sur l'identification des individus qui contribuent le plus à la formation des axes. Pour chaque axe $\alpha$, on définit la \textbf{contribution} de l'individu $i$ par :
+
+\begin{equation}
+	CTR_\alpha(i) = \frac{1}{n} \frac{c_{i,\alpha}^2}{\lambda_\alpha}
+\end{equation}
+
+
+\textbf{Règle de décision :} 
+\begin{itemize}
+	\item La contribution moyenne par individu est de $1/n$.
+	\item On considère généralement qu'un individu a une contribution significative (individu « leader » ou atypique) si elle dépasse \textbf{4 fois son poids} (soit $4/n$).
+\end{itemize}
+
+
+\subsection{Interprétation externe : variables supplémentaires}
+
+On utilise souvent des éléments supplémentaires pour l'interprétation des résultats de l'analyse. On distingue les variables actives, qui déterminent les axes, des variables passives (ou supplémentaires) que l'on relie \textit{a posteriori} aux composantes principales. On s'intéressera dans le cadre de cette étude qu'aux variables supplémentaires qualitatives.
+Une variable qualitative supplémentaire définit une partition des $n$ individus en $k$ catégories. Chaque catégorie $i$ (contenant $n_i$ individus) est représentée sur le plan principal par son centre de gravité.
+
+\newpage
+\section{Application}
+
+\subsection{Description du jeu de données et objectif d'analyse}
+
+Le jeu de données \texttt{freMTPL2freq.csv} concerne des contrats d'assurance automobile en responsabilité civile en France.
+
+Dans le cadre de cette étude, l'objectif principal est d'appliquer une Analyse en Composantes Principales afin d'explorer la structure des variables explicatives, de détecter d'éventuelles corrélations et de résumer l'information contenue dans les données.
+
+Ce fichier contient 678\,013 observations, chacune correspondant à un contrat d'assurance. Il regroupe les caractéristiques des assurés, des véhicules et de leur environnement.
+
+Les variables disponibles sont les suivantes :
+
+\begin{itemize}
+	\item \textbf{IDpol} : identifiant unique du contrat
+	\item \textbf{ClaimNb} : nombre de sinistres déclarés
+	\item \textbf{Exposure} : durée d'exposition du contrat (en années)
+	\item \textbf{VehPower} : puissance du véhicule (variable ordinale)
+	\item \textbf{VehAge} : âge du véhicule (en années)
+	\item \textbf{DrivAge} : âge du conducteur (en années)
+	\item \textbf{BonusMalus} : coefficient bonus-malus (entre 50 et 350)
+	\item \textbf{VehBrand} : marque du véhicule (codée)
+	\item \textbf{VehGas} : type de carburant (Diesel ou Regular)
+	\item \textbf{Area} : catégorie de zone géographique (de A à F)
+	\item \textbf{Density} : densité de population (habitants par km$^2$)
+	\item \textbf{Region} : région de résidence
+\end{itemize}
+
+Dans le cadre de l'ACP, seules les variables quantitatives seront retenues (telles que \texttt{DrivAge}, \texttt{VehAge}, \texttt{VehPower}, \texttt{BonusMalus}, \texttt{Density}, \texttt{Exposure}). Les variables qualitatives feront l'objet d'une analyse complémentaire. On se limitera à 100 individus par souci de rapidité de calcul et de lisibilité des graphiques.
+
+\newpage
+
+\subsection{Mise en œuvre sous R}
+
+<<setup, echo=FALSE, include=FALSE>>=
+# Limite la largeur de l'affichage du texte à 60 caractères
+options(width = 60)
+
+# FORCE TOUS LES GRAPHIQUES À RESTER STRICTEMENT SOUS LEUR CODE ("H" pour "Here")
+knitr::opts_chunk$set(fig.pos = "H")
+@
+
+<<chargement_biblio, echo=TRUE, message=FALSE, warning=FALSE>>=
+# Chargement des bibliothéques
+library(FactoMineR)
+library(factoextra)
+@
+
+<<importation, echo=TRUE>>=
+# Importation des données
+
+data <- read.csv("freMTPL2freq.csv")
+data_reduit <- data[1:100, ]
+head(data_reduit)
+
+# Manipulation des données 
+
+rownames(data_reduit) <- data_reduit$IDpol
+data_reduit$IDpol <- NULL
+@
+
+<<ACP_plots, echo=TRUE, fig.height=4.5, fig.width=6, fig.show='hold', out.width='80%', fig.align='center'>>=
+# ACP centrée et réduite
+res.pca <- PCA(data_reduit,
+               scale.unit = TRUE,           # standardisation
+               ncp = 5,                    # nombre de dimensions
+               quali.sup = c(7, 8, 9, 11), # variables qualitatives ou supplementaires
+               graph = TRUE)               # Genere les 2 graphiques
+@
+
+<<summary, echo=TRUE>>=
+# Résumé de l'analyse
+summary(res.pca)
+@
+
+<<eigval, echo=TRUE>>=
+# Valeurs propres
+eig.val <- res.pca$eig
+print(eig.val)
+@
+
+<<Scree plot, echo=TRUE, fig.height=4, fig.cap="Variance expliquée par chaque composante principale">>=
+# Scree plot (variance expliquée)
+fviz_eig(res.pca, addlabels = TRUE)
+@
+
+<<biplot, echo=TRUE, fig.width=7, fig.height=3.5, out.width='80%', fig.align='center'>>=
+fviz_pca_biplot(res.pca, 
+                repel = TRUE)
+@
+
+<<contrib, echo=TRUE, fig.pos='H', out.width='60%', fig.align='center', fig.cap="Contribution des variables au premier axe principal">>=
+# Contribution des variables au premier axe principal
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+@
+
+<<contrib2, echo=TRUE, fig.pos='H', out.width='60%', fig.align='center', fig.cap="Contribution des variables au deuxième axe principal">>=
+# Contribution des variables au deuxième axe principal
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
+@
+
+<<modalité région, echo=TRUE, fig.height=4, fig.cap="Visualisation de la modalité qualitative région">>=
+# Visualisation de la modalité qualitative région
+fviz_pca_ind(res.pca,
+             habillage = "Region")
+@
+
+\subsection{Interprétation des résultats}
+
+L'Analyse a été réalisée sur un échantillon réduit de 100 individus et s'appuie sur sept variables actives numériques et quatre variables qualitatives.
+
+\paragraph{Analyse de l'inertie} 
+L'examen des valeurs propres montre que le premier axe explique \textbf{24,50 \%} de la variance totale, tandis que le second en explique \textbf{17,53 \%}. Le premier plan factoriel restitue ainsi \textbf{42,04 \%} de l'inertie du jeu de données. Selon le critère de Kaiser, trois axes présentent une valeur propre supérieure à 1, cumulant plus de 58 \% de l'information.
+
+\paragraph{Interprétation des axes; Cercle des corrélations} 
+\begin{itemize}
+    \item \textbf{Axe 1 (Dimension du risque et de l'expérience)} : Cet axe est principalement porté par \texttt{DrivAge} (contribution de 41,8 \%) corrélé négativement, et par \texttt{BonusMalus} (36,4 \%) corrélé positivement. Il oppose les conducteurs expérimentés (âgés, faible bonus-malus) aux profils plus jeunes possédant des véhicules plus anciens et des coefficients de bonus-malus plus élevés.
+    \item \textbf{Axe 2 (Dimension de la puissance du véhicule et de la densité démographique)} : La variable \texttt{VehPower} est le contributeur majeur de cet axe (54,6 \%), suivie de \texttt{Density} (20,1 \%). Cet axe segmente les assurés selon la puissance de leur véhicule et la densité de leur zone d'habitation, suggérant une utilisation de véhicules plus puissants dans les zones urbaines denses.
+\end{itemize}
+
+\paragraph{Analyse des individus et Biplot} 
+La projection des individus sur le premier plan factoriel met en évidence plusieurs profils atypiques :
+\begin{itemize}
+    \item L'individu \textbf{35} se détache fortement sur l'axe 1, représentant un profil à risque élevé (conducteur âgé et fort bonus-malus).
+    \item Les individus \textbf{151} et \textbf{170} se distinguent sur l'axe 2 par la possession de véhicules de forte puissance.
+    \item L'analyse par \textit{habillage} géographique montre que les régions comme l'\textit{Île-de-France} tendent à se regrouper vers les valeurs élevées de l'axe 2, confirmant le lien avec la densité de population.
+\end{itemize}
+
+\paragraph{Conclusion de l'analyse} 
+Cette ACP permet de structurer le portefeuille client en deux dimensions majeures : le risque lié à l'expérience du conducteur et l'environnement technique/géographique lié au véhicule.
+
+\begin{thebibliography}{9}
+
+\bibitem{saporta}
+Saporta, G. \textit{Probabilités, analyses des données et statistiques}. Technip, 1990.
+
+\bibitem{françois husson}
+Fançois, H., Sébastien L., Jérome, P. \textit{Analyse de données avec R}. Presses universitaires de Rennes, 2016.
+
+\bibitem{dutang2020}
+Dutang, C. et Charpentier, A. \textit{Package 'casdatasets'}. Disponible sur : \url{https://dutangc.perso.math.cnrs.fr/RRepository/pub/web/CASdatasets-manual.pdf}, 2020.
+
+\end{thebibliography}
+
+\end{document}
+
+
